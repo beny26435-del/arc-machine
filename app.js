@@ -348,6 +348,10 @@ arc-machine:~ <span data-terminal-user>user</span>$ help
       <div class="game-board" id="gameBoard">
         <div class="game-player" id="gamePlayer">wallet</div>
       </div>
+      <div class="game-touch-controls" aria-label="Touch game controls">
+        <button class="game-touch-button" id="gameLeft" type="button">← Left</button>
+        <button class="game-touch-button" id="gameRight" type="button">Right →</button>
+      </div>
       <div class="ability-row">
         <span class="ability-pill">One mode. One life. Score makes the drop field faster.</span>
         <span class="ability-pill">Rare colored drops trigger powers instantly.</span>
@@ -565,9 +569,11 @@ function openWindow(name) {
   if (existing) {
     if (existing.style.display === "none") {
       restoreWindow(existing);
+      showOnlyCompactWindow(existing);
       return;
     }
     focusWindow(existing);
+    showOnlyCompactWindow(existing);
     return;
   }
 
@@ -586,6 +592,7 @@ function openWindow(name) {
   windows.set(name, node);
   bindWindowLaunchers(node);
   focusWindow(node);
+  showOnlyCompactWindow(node);
   data.mount?.();
   requestAnimationFrame(() => constrainWindowToViewport(node));
 }
@@ -641,16 +648,24 @@ function navigateInPlace(node, target) {
     return;
   }
 
+  const oldName = node.dataset.windowPanel;
+  if (oldName && windows.get(oldName) === node && oldName !== target) {
+    windows.delete(oldName);
+  }
   node.querySelector(".window-title").textContent = data.title;
   node.querySelector(".window-body").innerHTML = data.html;
   node.classList.toggle("finder-window", data.className === "finder-window");
+  node.dataset.windowPanel = target;
   node.dataset.currentPanel = target;
+  windows.set(target, node);
   bindWindowLaunchers(node);
   data.mount?.();
   focusWindow(node);
+  showOnlyCompactWindow(node);
 }
 
 function closeWindow(name) {
+  stopWindowRuntime(name);
   windows.get(name)?.remove();
   windows.delete(name);
 }
@@ -658,6 +673,7 @@ function closeWindow(name) {
 function closeNodeWindow(node) {
   if (!node) return;
   const name = node.dataset.windowPanel;
+  stopWindowRuntime(name);
   if (name && windows.has(name)) {
     closeWindow(name);
     return;
@@ -667,6 +683,7 @@ function closeNodeWindow(node) {
 
 function minimizeWindow(node) {
   if (!node) return;
+  stopWindowRuntime(node.dataset.windowPanel);
   node.style.transform = "scale(0.96)";
   node.style.opacity = "0";
   node.style.pointerEvents = "none";
@@ -714,6 +731,30 @@ function focusWindow(node) {
   document.querySelectorAll(".window").forEach((item) => item.classList.remove("active"));
   node.classList.add("active");
   node.style.zIndex = String(++zIndex);
+}
+
+function isCompactViewport() {
+  return window.matchMedia("(max-width: 840px)").matches;
+}
+
+function showOnlyCompactWindow(node) {
+  if (!isCompactViewport() || !node) return;
+  document.querySelectorAll(".window").forEach((item) => {
+    if (item !== node) item.style.display = "none";
+  });
+  node.style.display = "";
+  node.style.transform = "";
+  node.style.opacity = "";
+  node.style.pointerEvents = "";
+  window.scrollTo({ top: 0, left: 0 });
+}
+
+function stopWindowRuntime(name) {
+  if (name === "game") {
+    activeGameController?.stop?.();
+    activeGameController?.abort?.();
+    activeGameController = null;
+  }
 }
 
 function constrainWindowToViewport(node) {
@@ -780,6 +821,9 @@ function updateWallpaperButtons() {
 }
 
 function mountGame() {
+  activeGameController?.stop?.();
+  activeGameController?.abort?.();
+
   const board = document.querySelector("#gameBoard");
   const player = document.querySelector("#gamePlayer");
   const scoreNode = document.querySelector("#gameScore");
@@ -789,6 +833,8 @@ function mountGame() {
   const userNode = document.querySelector("#gameUser");
   const startButton = document.querySelector("#gameStart");
   const resetButton = document.querySelector("#gameReset");
+  const leftButton = document.querySelector("#gameLeft");
+  const rightButton = document.querySelector("#gameRight");
 
   const highScoreKey = "arc-machine-usdc-drop-high-score";
   const playerName = localStorage.getItem("arc-machine-username") ?? "Guest";
@@ -803,6 +849,16 @@ function mountGame() {
   let shieldCharges = 0;
   let lastTime = 0;
   let frame = null;
+  let draggingPlayer = false;
+
+  const controller = new AbortController();
+  activeGameController = {
+    abort: () => controller.abort(),
+    stop: () => {
+      running = false;
+      cancelAnimationFrame(frame);
+    },
+  };
 
   userNode.textContent = playerName;
   highScoreNode.textContent = String(highScore);
@@ -853,6 +909,7 @@ function mountGame() {
   }
 
   function renderOnly() {
+    if (!board.isConnected) return;
     const boardWidth = board.clientWidth;
     player.style.left = `${playerX * 100}%`;
     board.querySelectorAll(".game-coin").forEach((node, index) => {
@@ -869,7 +926,7 @@ function mountGame() {
   }
 
   function tick(timestamp) {
-    if (!running) return;
+    if (!running || !board.isConnected) return;
     if (!lastTime) lastTime = timestamp;
     const delta = Math.min(34, timestamp - lastTime) / 1000;
     lastTime = timestamp;
@@ -1000,23 +1057,53 @@ function mountGame() {
     toast("Game over", `${playerName} caught ${score} USDC drops. High score: ${highScore}.`);
   }
 
-  board.addEventListener("pointermove", (event) => {
+  function updatePlayerFromPointer(event) {
     const rect = board.getBoundingClientRect();
     playerX = Math.max(0.08, Math.min(0.92, (event.clientX - rect.left) / rect.width));
     renderOnly();
-  });
+  }
 
-  activeGameController?.abort();
-  activeGameController = new AbortController();
+  board.addEventListener("pointerdown", (event) => {
+    event.preventDefault();
+    draggingPlayer = true;
+    board.setPointerCapture?.(event.pointerId);
+    updatePlayerFromPointer(event);
+  }, { signal: controller.signal });
+
+  board.addEventListener("pointermove", (event) => {
+    if (!draggingPlayer && event.pointerType !== "mouse") return;
+    event.preventDefault();
+    updatePlayerFromPointer(event);
+  }, { signal: controller.signal });
+
+  board.addEventListener("pointerup", (event) => {
+    draggingPlayer = false;
+    board.releasePointerCapture?.(event.pointerId);
+  }, { signal: controller.signal });
+
+  board.addEventListener("pointercancel", () => {
+    draggingPlayer = false;
+  }, { signal: controller.signal });
+
   document.addEventListener("keydown", (event) => {
     if (!windows.has("game")) return;
     if (event.key === "ArrowLeft") playerX = Math.max(0.08, playerX - 0.06);
     if (event.key === "ArrowRight") playerX = Math.min(0.92, playerX + 0.06);
     renderOnly();
-  }, { signal: activeGameController.signal });
+  }, { signal: controller.signal });
 
-  startButton?.addEventListener("click", start);
-  resetButton?.addEventListener("click", reset);
+  leftButton?.addEventListener("click", () => {
+    playerX = Math.max(0.08, playerX - 0.12);
+    renderOnly();
+  }, { signal: controller.signal });
+
+  rightButton?.addEventListener("click", () => {
+    playerX = Math.min(0.92, playerX + 0.12);
+    renderOnly();
+  }, { signal: controller.signal });
+
+  startButton?.addEventListener("click", start, { signal: controller.signal });
+  resetButton?.addEventListener("click", reset, { signal: controller.signal });
   reset();
 }
 
@@ -1397,3 +1484,20 @@ document.addEventListener("keydown", (event) => {
 
 applySavedWallpaper();
 bindWindowLaunchers();
+bootstrapFromQuery();
+
+function bootstrapFromQuery() {
+  const params = new URLSearchParams(window.location.search);
+  if (params.get("boot") !== "1") return;
+  const username = normalizeUsername(params.get("username") || localStorage.getItem("arc-machine-username") || "ben");
+  localStorage.setItem("arc-machine-username", username);
+  setUsername(username);
+  powerScreen.classList.add("hidden");
+  bootScreen.classList.add("hidden");
+  desktop.classList.remove("hidden");
+  usernameModal.classList.add("hidden");
+  updateClock();
+  setInterval(updateClock, 1000);
+  const panel = params.get("window");
+  if (panel && content[panel]) requestAnimationFrame(() => openWindow(panel));
+}
