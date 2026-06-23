@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#07121a" />
+    <meta
+      name="description"
+      content="Arc Machine is a macOS-inspired interactive desktop for exploring Arc, USDC, App Kit, memos, Arcscan, and Arclet."
+    />
+    <title>Arc Machine</title>
+    <meta http-equiv="Cache-Control" content="no-store" />
+    <link rel="stylesheet" href="./styles.css?v=20260623-1835" />
+    <style>
+      .finder-window .window-body {
+        display: block;
+      }
+
+      .finder-layout,
+      .welcome-body {
+        display: grid;
+        grid-template-columns: 190px minmax(0, 1fr);
+      }
+
+      .finder-main {
+        display: block;
+        min-width: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="machine" aria-label="Arc Machine interactive desktop">
+      <section class="power-screen" id="powerScreen">
+        <div class="power-panel">
+          <div class="power-orb arc-brand-mark" aria-hidden="true"><img src="./assets/arc-logo.png" alt="" /></div>
+          <p class="eyebrow">Arc Machine</p>
+          <h1>Press power to start.</h1>
+          <p>Boot into a tiny Arc desktop with docs, App Kit, memos, Arcscan, and a few hidden things tucked away.</p>
+          <button class="power-button" id="powerButton" type="button">Power on</button>
+        </div>
+      </section>
+
+      <section class="boot-screen hidden" id="bootScreen" aria-live="polite">
+        <div class="boot-shell">
+          <div class="boot-logo arc-brand-mark" aria-hidden="true"><img src="./assets/arc-logo.png" alt="" /></div>
+          <pre class="boot-log" id="bootLog"></pre>
+          <div class="boot-progress"><span id="bootProgress"></span></div>
+        </div>
+      </section>
+
+      <section class="desktop hidden" id="desktop" aria-label="Arc Machine desktop">
+        <div class="wallpaper" aria-hidden="true">
+          <span class="aurora aurora-a"></span>
+          <span class="aurora aurora-b"></span>
+          <span class="aurora aurora-c"></span>
+        </div>
+
+        <header class="menu-bar" aria-label="Menu bar">
+          <div class="menu-left">
+            <button class="menu-arc arc-brand-mark" id="arcMenuButton" type="button" aria-label="Arc menu"><img src="./assets/arc-logo.png" alt="" /></button>
+            <strong>Finder</strong>
+            <button data-window="finder" type="button">File</button>
+            <button data-window="applications" type="button">Applications</button>
+            <button data-window="documents" type="button">Documents</button>
+            <button data-window="settings" type="button">Settings</button>
+            <button data-window="terminal" type="button">Terminal</button>
+          </div>
+          <div class="menu-right">
+            <span id="userBadge">Guest</span>
+            <span>Arc Testnet</span>
+            <span>USDC</span>
+            <button class="menu-clock" id="clock" type="button">--:--</button>
+          </div>
+        </header>
+
+        <div class="desktop-icons" aria-label="Desktop items">
+          <a class="desktop-icon" href="https://community.arc.io/home" target="_blank" rel="noreferrer">
+            <span class="mac-icon arc-home-icon" aria-hidden="true"><img src="./assets/arc-logo.png" alt="" /></span>
+            <span>Arc Home</span>
+          </a>
+          <a class="desktop-icon" href="https://x.com/benyaminstyles" target="_blank" rel="noreferrer">
+            <span class="mac-icon creator-x-icon" aria-hidden="true"></span>
+            <span>Creator X</span>
+          </a>
+          <button class="desktop-icon" data-window="finder" type="button">
+            <span class="mac-icon finder-icon" aria-hidden="true"></span>
+            <span>Finder</span>
+          </button>
+          <button class="desktop-icon" data-window="computer" type="button">
+            <span class="mac-icon drive-icon" aria-hidden="true"></span>
+            <span>Macintosh HD</span>
+          </button>
+          <button class="desktop-icon" data-window="applications" type="button">
+            <span class="mac-icon app-folder" aria-hidden="true"></span>
+            <span>Applications</span>
+          </button>
+          <button class="desktop-icon" data-window="documents" type="button">
+            <span class="mac-icon folder-icon" aria-hidden="true"></span>
+            <span>Documents</span>
+          </button>
+          <button class="desktop-icon" data-window="trash" type="button">
+            <span class="mac-icon trash-icon" aria-hidden="true"></span>
+            <span>Trash</span>
+          </button>
+        </div>
+
+        <a class="bridge-widget" href="https://arclet.xyz/bridge" target="_blank" rel="noreferrer" aria-label="Bridge USDC with Arclet">
+          <span class="bridge-widget-icon" aria-hidden="true"></span>
+          <span class="bridge-widget-copy">
+            <strong>Bridge USDC</strong>
+            <small>Sepolia ↔ Arc Testnet</small>
+          </span>
+          <span class="bridge-widget-arrow" aria-hidden="true">↗</span>
+        </a>
+
+        <section class="window active finder-window" id="window-welcome" data-window-panel="welcome" style="--x: 24vw; --y: 15vh; --w: 720px;">
+          <header class="window-titlebar">
+            <div class="traffic-lights">
+              <button class="window-close" type="button" aria-label="Close window"></button>
+              <button class="window-minimize" type="button" aria-label="Minimize window"></button>
+              <button class="window-zoom" type="button" aria-label="Zoom window"></button>
+            </div>
+            <span class="window-title">Welcome to Arc Machine</span>
+            <span class="title-spacer"></span>
+          </header>
+          <div class="window-body welcome-body">
+            <aside class="finder-sidebar">
+              <button data-folder="finder" type="button">Recents</button>
+              <button data-folder="applications" type="button">Applications</button>
+              <button data-folder="documents" type="button">Documents</button>
+              <button data-folder="docs" type="button">Arc Docs</button>
+              <button data-folder="trash" type="button">Trash</button>
+            </aside>
+            <div class="finder-main">
+              <p class="eyebrow">Stablecoin desktop</p>
+              <h2>Arc, but as a tiny Mac.</h2>
+              <p>Open folders, browse Arc resources, inspect memos, launch the terminal, and poke around. Some files are not where they first appear.</p>
+              <div class="file-grid">
+                <button class="file-card" data-window="applications" type="button"><span class="mini-folder apps"></span><strong>Applications</strong><small>Arc apps and tools</small></button>
+                <button class="file-card" data-window="documents" type="button"><span class="mini-folder"></span><strong>Documents</strong><small>Memos and notes</small></button>
+                <button class="file-card" data-window="settings" type="button"><span class="mini-settings"></span><strong>System Settings</strong><small>Wallpaper and machine preferences</small></button>
+                <button class="file-card" data-window="game" type="button"><span class="mini-game"></span><strong>USDC Drop</strong><small>Built-in game</small></button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <template id="windowTemplate">
+          <section class="window active">
+            <header class="window-titlebar">
+              <div class="traffic-lights">
+                <button class="window-close" type="button" aria-label="Close window"></button>
+                <button class="window-minimize" type="button" aria-label="Minimize window"></button>
+                <button class="window-zoom" type="button" aria-label="Zoom window"></button>
+              </div>
+              <span class="window-title"></span>
+              <span class="title-spacer"></span>
+            </header>
+            <div class="window-body"></div>
+          </section>
+        </template>
+
+        <nav class="dock" aria-label="Dock">
+          <button class="dock-icon finder-icon" data-window="finder" type="button" aria-label="Finder"></button>
+          <button class="dock-icon drive-icon" data-window="computer" type="button" aria-label="Macintosh HD"></button>
+          <button class="dock-icon app-folder" data-window="applications" type="button" aria-label="Applications"></button>
+          <button class="dock-icon settings-icon" data-window="settings" type="button" aria-label="System Settings"></button>
+          <button class="dock-icon game-icon" data-window="game" type="button" aria-label="USDC Drop"></button>
+          <button class="dock-icon terminal-dock" data-window="terminal" type="button" aria-label="Terminal"></button>
+          <span class="dock-separator"></span>
+          <button class="dock-icon trash-icon" data-window="trash" type="button" aria-label="Trash"></button>
+        </nav>
+      </section>
+
+      <section class="username-modal hidden" id="usernameModal" aria-label="Set up Arc Machine username">
+        <form class="username-card" id="usernameForm">
+          <div class="power-orb small arc-brand-mark" aria-hidden="true"><img src="./assets/arc-logo.png" alt="" /></div>
+          <p class="eyebrow">First boot</p>
+          <h2>Name this machine</h2>
+          <p>Choose a local username. It is saved only in this browser.</p>
+          <input id="usernameInput" maxlength="24" autocomplete="off" placeholder="ben.arc" aria-label="Username" />
+          <button class="primary-button" type="submit">Enter desktop</button>
+        </form>
+      </section>
+    </main>
+
+    <script src="./app.js?v=20260623-1835"></script>
+  </body>
+</html>
