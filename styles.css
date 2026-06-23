@@ -1560,10 +1560,10 @@ h1 {
   }
 
   .mobile-blocker {
-    min-height: 100dvh;
-    display: grid;
-    place-items: center;
-    padding: 22px;
+    position: fixed;
+    inset: 0;
+    display: block;
+    padding: max(22px, env(safe-area-inset-top)) 22px max(22px, env(safe-area-inset-bottom));
     color: var(--ink);
     background:
       radial-gradient(circle at 20% 18%, rgba(103, 240, 199, 0.14), transparent 34%),
@@ -1572,12 +1572,12 @@ h1 {
   }
 
   .mobile-blocker-card {
-    position: fixed;
-    left: 18px;
+    position: absolute;
+    left: 20px;
     right: auto;
     top: 50%;
-    width: min(354px, calc(100vw - 36px));
-    max-width: calc(100vw - 36px);
+    width: min(350px, calc(100vw - 40px));
+    max-width: calc(100vw - 40px);
     padding: 28px 22px;
     border: 1px solid var(--line);
     border-radius: 28px;
@@ -1586,6 +1586,7 @@ h1 {
     text-align: center;
     transform: translateY(-50%);
     backdrop-filter: blur(26px) saturate(1.2);
+    overflow: hidden;
   }
 
   .mobile-blocker-card h1 {
@@ -1593,12 +1594,14 @@ h1 {
     font-size: clamp(38px, 12vw, 50px);
     line-height: 0.95;
     letter-spacing: -0.04em;
+    overflow-wrap: anywhere;
   }
 
   .mobile-blocker-card p:not(.eyebrow) {
     margin: 0;
     color: var(--muted);
     line-height: 1.65;
+    overflow-wrap: anywhere;
   }
 
   .mobile-blocker-pills {

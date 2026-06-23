@@ -28,7 +28,7 @@ const wallpapers = [
 
 const fileSystem = {
   "/": ["Applications", "Documents", "Macintosh HD", "Trash"],
-  "/Applications": ["Arc Home.url", "Creator X.url", "Bridge USDC.url", "Arc Docs.app", "App Kit.app", "USDC Drop.app", "Terminal.app", "Arcscan.url", "Faucet.url"],
+  "/Applications": ["Arc House.url", "Creator X.url", "Bridge USDC.url", "Arc Docs.app", "App Kit.app", "USDC Drop.app", "Terminal.app", "Arcscan.url", "Faucet.url"],
   "/Documents": ["Memo Pad.note", "Arclet Receipt.memo", "Bridge Checklist.txt"],
   "/Macintosh HD": ["System", "Network", "Contracts", "Utilities"],
   "/Macintosh HD/System": [".stablecoin-native", ".arc-cache", "rpc.conf", "chain-id.txt"],
@@ -91,7 +91,7 @@ const content = {
         <p class="eyebrow">Applications</p>
         <h2>Arc apps</h2>
         <div class="file-grid">
-          ${externalCard("Arc Home", "Community home, updates, and builder resources.", "https://community.arc.io/home", "arc")}
+          ${externalCard("Arc House", "Community home, updates, and builder resources.", "https://community.arc.io/home", "arc")}
           ${externalCard("Creator X", "Follow Benyamin's builds and updates.", "https://x.com/benyaminstyles", "x")}
           ${externalCard("Bridge USDC", "Open Arclet bridge for Sepolia and Arc.", "https://arclet.xyz/bridge", "bridge")}
           ${fileButton("docs", "Arc Docs", "Developer documentation", "folder")}
@@ -1152,7 +1152,7 @@ function handleCommand(input) {
       "  balance | gas | rpc       Arc testnet info",
       "  chain | status | memo     Arc shortcuts",
       "  apps                      list desktop apps",
-      "  home | docs | appkit      open Arc resources",
+      "  house | docs | appkit     open Arc resources",
       "  x | creator               open creator profile",
       "  bridge                    open App Kit Bridge docs",
       "  game                      open USDC Drop",
@@ -1219,9 +1219,9 @@ function handleCommand(input) {
     return "Opening Arclet...";
   }
   if (command === "sudo") return "Permission denied. This machine is user-owned.";
-  if (command === "home" || command === "archome") {
+  if (command === "house" || command === "archouse" || command === "home" || command === "archome") {
     window.open("https://community.arc.io/home", "_blank", "noopener,noreferrer");
-    return "Opening Arc Home...";
+    return "Opening Arc House...";
   }
   if (command === "x" || command === "creator") {
     window.open("https://x.com/benyaminstyles", "_blank", "noopener,noreferrer");
@@ -1367,8 +1367,10 @@ function openFromTerminal(target) {
     "arc docs": "docs",
     "app kit.app": "appkit",
     "app kit": "appkit",
-    "arc home.url": "arcHome",
-    "arc home": "arcHome",
+    "arc house.url": "arcHouse",
+    "arc house": "arcHouse",
+    "arc home.url": "arcHouse",
+    "arc home": "arcHouse",
     "creator x.url": "creatorX",
     "creator x": "creatorX",
     "bridge usdc.url": "bridgeUsdc",
@@ -1386,9 +1388,9 @@ function openFromTerminal(target) {
   };
   const windowName = map[normalized];
   if (windowName) {
-    if (windowName === "arcHome") {
+    if (windowName === "arcHouse") {
       window.open("https://community.arc.io/home", "_blank", "noopener,noreferrer");
-      return "Opening Arc Home...";
+      return "Opening Arc House...";
     }
     if (windowName === "creatorX") {
       window.open("https://x.com/benyaminstyles", "_blank", "noopener,noreferrer");
